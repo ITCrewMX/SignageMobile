@@ -2,6 +2,7 @@ package com.itcrew.signage;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
@@ -38,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText user, password;
     private ProgressDialog pDialog;
-    private String jsonResponse, jsonmessage;
+    private String jsonResponse, jsonmessage, jsonUser;
 
     private static String TAG = LoginActivity.class.getSimpleName();
 
@@ -111,9 +112,12 @@ public class LoginActivity extends AppCompatActivity {
                 {
                     Log.i("JSON STATUS", jsonResponse = response.getString("status"));
                     Log.i("JSON ERROR", jsonmessage = response.getString("mensaje"));
+                    Log.i("JSON ERROR", jsonUser = response.getString("usuario"));
 
                     if(jsonResponse.compareTo("ok") == 0) {
                         Toast.makeText(getApplicationContext(), jsonmessage, Toast.LENGTH_LONG).show();
+                        //adding user to shared preferences
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("USER", jsonUser).apply();
                         Intent mainIntent = new Intent().setClass(LoginActivity.this, com.itcrew.signage.Campaign.class);
                         startActivity(mainIntent);
                     }
