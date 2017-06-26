@@ -85,7 +85,7 @@ public class LoginActivity extends AppCompatActivity {
         showpDialog();
 
         //Establish url
-        String url = "http://10.0.2.2:8080/Signage2.1/SignageResources/SignageRest/initSession";
+        String url = "http://192.168.1.117:8080/Signage2.2/SignageResources/SignageRest/initSession";
 
 
         JSONObject content = new JSONObject();

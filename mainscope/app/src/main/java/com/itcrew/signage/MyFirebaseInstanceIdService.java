@@ -11,13 +11,21 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
 
 public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
 
-    public static final String TAG ="NOTIFICACION";
+    public static final String TAG ="FirebaseIDService";
     @Override
     public void onTokenRefresh() {
-        super.onTokenRefresh();
+        //super.onTokenRefresh();
 
         String token = FirebaseInstanceId.getInstance().getToken();
 
         Log.d(TAG, "Token: " + token);
+        actualizarToken(token);
+
     }
+
+
+    private void actualizarToken(String token){
+        //aqui se llama al ws para actualizar el push token
+    }
+
 }

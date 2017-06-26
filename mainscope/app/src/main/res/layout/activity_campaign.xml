@@ -17,6 +17,13 @@
         android:layout_alignParentBottom="true"
         android:layout_height="fill_parent" />
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        app:srcCompat="@drawable/bg1" />
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"

@@ -9,6 +9,8 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Window;
 import android.net.Uri;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 import android.widget.MediaController;
@@ -24,13 +26,18 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Campaign extends AppCompatActivity {
     ProgressDialog pDialog;
     VideoView videoView;
-    private String jsonResponse, jsonmessage;
+    ImageView imageView;
+    TextView textView;
+    private String jsonResponse, jsonMedia, jsonMediaType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,101 +45,132 @@ public class Campaign extends AppCompatActivity {
         this.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_campaign);
 
-        // Create a progressbar
+        //Create a progressbar
         pDialog = new ProgressDialog(Campaign.this);
-        // Set progressbar message
+
+        //Set progressbar message
         pDialog.setMessage("Loading...");
         pDialog.setCancelable(false);
-        // Show progressbar
+
+        //Show progressbar
         pDialog.show();
 
+        //Build videoView
         videoView = (VideoView) findViewById(R.id.videoView);
 
-        String url ="http://clips.vorwaerts-gmbh.de/VfE_html5.mp4";
-        Uri vidUri = Uri.parse(url);
+        //Build imageView
+        imageView = (ImageView) findViewById(R.id.imageView);
 
-        videoView.setVideoURI(vidUri);
+        //Build textView
+        textView = (TextView) findViewById(R.id.textView);
 
-        videoView.start();
-
-        try {
-            // Start the MediaController
-            MediaController mediacontroller = new MediaController(
-                    Campaign.this);
-            mediacontroller.setAnchorView(videoView);
-            // Get the URL from String VideoURL
-            Uri video = Uri.parse(url);
-            videoView.setMediaController(mediacontroller);
-            videoView.setVideoURI(video);
+        //Build URL
+        final String url = "http://10.0.2.2:8080/Signage/SignageResources/SignageRest/peticionCampana";
 
 
-        } catch (Exception e) {
-            Log.e("Error", e.getMessage());
-            e.printStackTrace();
+        //Build Parameter with JSON body
+        JSONObject content = new JSONObject();
+        try
+        {
+            content.put("campana_id", "1");
+            content.put("request_type", "1");
         }
-
-        videoView.requestFocus();
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            // Close the progress bar and play the video
-            public void onPrepared(MediaPlayer mp) {
-                pDialog.dismiss();
-                videoView.start();
-            }
-        });
-
-        /*JSONObject content = new JSONObject();
-
-        //Build Parameter
-        try {
-            content.put("request_type", "");
-            content.put("campana_id", "");
-        } catch(Exception e)
+        catch(Exception e)
         {
             e.printStackTrace();
         }
 
+        //Convert previous JSON into string
         final String requestBody = content.toString();
 
-        //Start request to Server
+
+        //Send the request with JSON body
         final JsonObjectRequest jsonrequest = new JsonObjectRequest(Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                //Get response
                 try
                 {
-                    Log.i("JSON STATUS", jsonResponse = response.getString("status"));
-                    Log.i("JSON ERROR", jsonmessage = response.getString("mensaje"));
+                    //Get response status
+                    jsonResponse = response.getString("status");
+                    jsonMediaType = response.getString("request_type");
 
-                    if(jsonResponse.compareTo("ok") == 0) {
-                        Toast.makeText(getApplicationContext(), jsonmessage, Toast.LENGTH_LONG).show();
-                        Intent mainIntent = new Intent().setClass(LoginActivity.this, com.itcrew.signage.Campaign.class);
-                        startActivity(mainIntent);
-                    }
-                    else
+                    //If status is ok
+                    if(jsonResponse.compareTo("ok") == 0)
                     {
-                        Toast.makeText(getApplicationContext(), jsonmessage, Toast.LENGTH_LONG).show();
+                        // Then get base64 of media.
+                        jsonMedia = response.getString("media");
+
+                        // ThenDecode base64 and send the response file to convert it.
+                        byte[] decodeValue = Base64.decode(jsonMedia.getBytes(), Base64.NO_WRAP);
+                        convertBytesToFile(decodeValue);
+
+                        //If media type is a video
+                        if(jsonMediaType.compareTo("1") == 0) {
+
+                            //Send the converted file to videoView and display it
+                            Uri vidUri = Uri.parse(url);
+                            videoView.setVideoURI(vidUri);
+                            videoView.start();
+
+                            try {
+                                // Start the MediaController
+                                MediaController mediacontroller = new MediaController(Campaign.this);
+                                mediacontroller.setAnchorView(videoView);
+
+                                // Get the URL from String VideoURL
+                                Uri video = Uri.parse(url);
+                                videoView.setMediaController(mediacontroller);
+                                videoView.setVideoURI(video);
+
+                                //////////////////////////////////////////////////////////////////////////////////
+                                // Tendre que cambiar esto para que reciba el archivo convertido y no de una url//
+                                //////////////////////////////////////////////////////////////////////////////////
+                            } catch (Exception e) {
+                                Log.e("Error", e.getMessage());
+                                e.printStackTrace();
+                            }
+
+                            videoView.requestFocus();
+                            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                                // Close the progress bar and play the video
+                                public void onPrepared(MediaPlayer mp) {
+                                    pDialog.dismiss();
+                                    videoView.start();
+                                }
+                            });
+                        }
+
+                        //If media type is an image
+                        else if (jsonMediaType.compareTo("2") == 0)
+                        {
+
+                        }
+
+                        //If media type is text
+                        else if(jsonMediaType.compareTo("3") == 0)
+                        {
+
+                        }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     e.printStackTrace();
                 }
-                hidepDialog();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-                hidepDialog();
+
             }
         }){
+            //Build the request JSON body
             @Override
             public byte[] getBody() {
                 return requestBody.getBytes();
             }
 
+            //Build the request header
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String>  params = new HashMap<String, String>();
@@ -141,15 +179,27 @@ public class Campaign extends AppCompatActivity {
                 return params;
             }
 
+            //Specify request content
             @Override
             public String getBodyContentType() {
                 return "application/json";
             }
 
         };
+    }
 
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        queue.add(jsonrequest);*/
-
+    private void convertBytesToFile(byte[] bytearray) {
+        try
+        {
+            File outputFile = File.createTempFile("file", "jpeg", getCacheDir());
+            outputFile.deleteOnExit();
+            FileOutputStream fileoutputstream = new FileOutputStream(outputFile);
+            fileoutputstream.write(bytearray);
+            fileoutputstream.close();
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
     }
 }
