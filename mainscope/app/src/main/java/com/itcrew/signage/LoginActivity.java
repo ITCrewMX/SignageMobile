@@ -31,6 +31,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import com.loopj.android.http.*;
@@ -81,17 +84,21 @@ public class LoginActivity extends AppCompatActivity {
     private void makeJSONObjectRequest(){
         showpDialog();
 
-        //Stablish url
-        String url = "http://10.0.2.2:8080/Signage/SignageResources/SignageRest/initSession";
+        //Establish url
+        String url = "http://10.0.2.2:8080/Signage2.1/SignageResources/SignageRest/initSession";
 
 
         JSONObject content = new JSONObject();
 
         //Build Parameter
         try {
-            byte[] encodeValue = Base64.encode(password.getText().toString().getBytes(), Base64.NO_WRAP);
+
+            String encodedPwd = encodeMD5(password.getText().toString());
+            //byte[] encodeValue = Base64.encode(password.getText().toString().getBytes(), Base64.NO_WRAP);
+
             content.put("usuario", user.getText().toString());
-            content.put("password", new String(encodeValue));
+            content.put("password", encodedPwd);
+            //content.put("password", new String(encodeValue));
             content.put("so", "Android");
             content.put("tokenPush", "Android");
             content.put("device", "Tablet Lenovo");
@@ -112,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 {
                     Log.i("JSON STATUS", jsonResponse = response.getString("status"));
                     Log.i("JSON ERROR", jsonmessage = response.getString("mensaje"));
-                    Log.i("JSON ERROR", jsonUser = response.getString("usuario"));
+                    Log.i("JSON USER", jsonUser = response.getString("usuario"));
 
                     if(jsonResponse.compareTo("ok") == 0) {
                         Toast.makeText(getApplicationContext(), jsonmessage, Toast.LENGTH_LONG).show();
@@ -174,4 +181,24 @@ public class LoginActivity extends AppCompatActivity {
         if (pDialog.isShowing())
             pDialog.dismiss();
     }
+
+
+    public static String encodeMD5(String pwd) {
+        String password = null;
+        MessageDigest mdEnc;
+        try {
+            mdEnc = MessageDigest.getInstance("MD5");
+            mdEnc.update(pwd.getBytes(), 0, pwd.length());
+            pwd = new BigInteger(1, mdEnc.digest()).toString(16);
+            while (pwd.length() < 32) {
+                pwd = "0" + pwd;
+            }
+            password = pwd;
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+        }
+        return password;
+    }
+
+
 }
