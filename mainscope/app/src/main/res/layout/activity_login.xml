@@ -71,6 +71,7 @@
                     android:text="@string/login_button_form"
                     tools:layout_editor_absoluteX="8dp"
                     tools:layout_editor_absoluteY="304dp" />
+
             </LinearLayout>
 
         </LinearLayout>

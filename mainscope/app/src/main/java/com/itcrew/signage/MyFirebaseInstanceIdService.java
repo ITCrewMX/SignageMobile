@@ -1,6 +1,7 @@
 package com.itcrew.signage;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
@@ -12,6 +13,8 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
 public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
 
     public static final String TAG ="FirebaseIDService";
+
+
     @Override
     public void onTokenRefresh() {
         //super.onTokenRefresh();
@@ -19,6 +22,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         String token = FirebaseInstanceId.getInstance().getToken();
 
         Log.d(TAG, "Token: " + token);
+        Toast.makeText(this, token, Toast.LENGTH_SHORT).show();
         actualizarToken(token);
 
     }

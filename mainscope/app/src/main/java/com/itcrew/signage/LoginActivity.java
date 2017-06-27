@@ -36,6 +36,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.loopj.android.http.*;
 
 public class LoginActivity extends AppCompatActivity {
@@ -199,6 +201,8 @@ public class LoginActivity extends AppCompatActivity {
         }
         return password;
     }
+
+
 
 
 }
